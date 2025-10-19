@@ -21,7 +21,11 @@ export const WorkspaceCard = ({
       <div className="relative">
         {/* Icon container */}
         <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center overflow-hidden">
-          <span className="text-5xl">{icon}</span>
+          <img 
+            src={icon} 
+            alt={name} 
+            className="w-full h-full object-cover"
+          />
         </div>
         
         {/* Red triangular badge */}

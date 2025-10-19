@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { WorkspaceCard } from "@/components/WorkspaceCard";
 import { CreateWorkspaceButton } from "@/components/CreateWorkspaceButton";
+import { AppSelector, AVAILABLE_APPS, App } from "@/components/AppSelector";
 import { toast } from "sonner";
 import { Menu } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import facebookIcon from "@/assets/facebook-icon.png";
 
 interface Workspace {
   id: string;
@@ -26,63 +28,74 @@ interface Workspace {
   instanceNumber: number;
   icon: string;
   baseApp: string;
+  appId: string;
 }
-
-const appIcons = ["📱", "💬", "📧", "🎮", "📷", "🎵", "🎬", "📝"];
 
 const Index = () => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([
-    { id: "1", name: "Lite(5)", instanceNumber: 5, icon: "📱", baseApp: "Lite" },
-    { id: "2", name: "Lite(13)", instanceNumber: 13, icon: "📱", baseApp: "Lite" },
-    { id: "3", name: "David", instanceNumber: 1, icon: "📱", baseApp: "David" },
-    { id: "4", name: "Lite(2)", instanceNumber: 2, icon: "📱", baseApp: "Lite" },
-    { id: "5", name: "Lite(6)", instanceNumber: 6, icon: "📱", baseApp: "Lite" },
-    { id: "6", name: "Lite(9)", instanceNumber: 9, icon: "📱", baseApp: "Lite" },
-    { id: "7", name: "Lite(10)", instanceNumber: 10, icon: "📱", baseApp: "Lite" },
-    { id: "8", name: "Lite(15)", instanceNumber: 15, icon: "📱", baseApp: "Lite" },
-    { id: "9", name: "Lite(16)", instanceNumber: 16, icon: "📱", baseApp: "Lite" },
-    { id: "10", name: "Lite(17)", instanceNumber: 17, icon: "📱", baseApp: "Lite" },
-    { id: "11", name: "Lite(19)", instanceNumber: 19, icon: "📱", baseApp: "Lite" },
-    { id: "12", name: "Lite(20)", instanceNumber: 20, icon: "📱", baseApp: "Lite" },
-    { id: "13", name: "Lite(7)", instanceNumber: 7, icon: "📱", baseApp: "Lite" },
-    { id: "14", name: "Lite(3)", instanceNumber: 3, icon: "📱", baseApp: "Lite" },
-    { id: "15", name: "Lite(21)", instanceNumber: 21, icon: "📱", baseApp: "Lite" },
-    { id: "16", name: "Lite(1)", instanceNumber: 1, icon: "📱", baseApp: "Lite" },
+    { id: "1", name: "Lite(5)", instanceNumber: 5, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "2", name: "Lite(13)", instanceNumber: 13, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "3", name: "David", instanceNumber: 1, icon: facebookIcon, baseApp: "David", appId: "facebook" },
+    { id: "4", name: "Lite(2)", instanceNumber: 2, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "5", name: "Lite(6)", instanceNumber: 6, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "6", name: "Lite(9)", instanceNumber: 9, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "7", name: "Lite(10)", instanceNumber: 10, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "8", name: "Lite(15)", instanceNumber: 15, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "9", name: "Lite(16)", instanceNumber: 16, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "10", name: "Lite(17)", instanceNumber: 17, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "11", name: "Lite(19)", instanceNumber: 19, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "12", name: "Lite(20)", instanceNumber: 20, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "13", name: "Lite(7)", instanceNumber: 7, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "14", name: "Lite(3)", instanceNumber: 3, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "15", name: "Lite(21)", instanceNumber: 21, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
+    { id: "16", name: "Lite(1)", instanceNumber: 1, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
   ]);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newWorkspaceName, setNewWorkspaceName] = useState("");
-  const [selectedIcon, setSelectedIcon] = useState("📱");
+  const [selectedApp, setSelectedApp] = useState<App | null>(null);
+  const [customName, setCustomName] = useState("");
+
+  const handleSelectApp = (app: App) => {
+    setSelectedApp(app);
+  };
 
   const handleCreateWorkspace = () => {
-    if (!newWorkspaceName.trim()) {
-      toast.error("Please enter a workspace name");
+    if (!selectedApp) {
+      toast.error("Please select an app to clone");
       return;
     }
 
-    const maxInstanceNumber = workspaces.reduce(
+    // Find all instances of the selected app
+    const appInstances = workspaces.filter(ws => ws.appId === selectedApp.id);
+    const maxInstanceNumber = appInstances.reduce(
       (max, ws) => Math.max(max, ws.instanceNumber),
       0
     );
 
+    const newInstanceNumber = maxInstanceNumber + 1;
+    const defaultName = customName.trim() || `${selectedApp.displayName}(${newInstanceNumber})`;
+
     const newWorkspace: Workspace = {
       id: Date.now().toString(),
-      name: newWorkspaceName,
-      instanceNumber: maxInstanceNumber + 1,
-      icon: selectedIcon,
-      baseApp: newWorkspaceName.split("(")[0],
+      name: defaultName,
+      instanceNumber: newInstanceNumber,
+      icon: selectedApp.icon,
+      baseApp: selectedApp.displayName,
+      appId: selectedApp.id,
     };
 
     setWorkspaces([...workspaces, newWorkspace]);
-    toast.success(`${newWorkspaceName} created`);
+    toast.success(`${defaultName} created`);
     setShowCreateDialog(false);
-    setNewWorkspaceName("");
-    setSelectedIcon("📱");
+    setSelectedApp(null);
+    setCustomName("");
   };
 
   const handleLaunchWorkspace = (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
-    toast.success(`Launching ${workspace?.name}...`);
+    toast.success(`Launching ${workspace?.name}...`, {
+      description: "Opening isolated workspace",
+    });
   };
 
   const handleDeleteWorkspace = (id: string) => {
@@ -148,58 +161,53 @@ const Index = () => {
 
       {/* Create Workspace Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Create New Workspace</DialogTitle>
+            <DialogTitle className="text-foreground">Clone App</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-2">
+            <AppSelector 
+              selectedAppId={selectedApp?.id || null}
+              onSelectApp={handleSelectApp}
+            />
+
             <div className="space-y-2">
               <Label htmlFor="name" className="text-foreground">
-                Workspace Name
+                Custom Name (Optional)
               </Label>
               <Input
                 id="name"
-                placeholder="e.g., Lite(22)"
-                value={newWorkspaceName}
-                onChange={(e) => setNewWorkspaceName(e.target.value)}
+                placeholder={selectedApp ? `${selectedApp.displayName}(${workspaces.filter(ws => ws.appId === selectedApp.id).length + 1})` : "Enter custom name"}
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
                 className="bg-secondary border-border text-foreground"
+                disabled={!selectedApp}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-foreground">Choose Icon</Label>
-              <div className="grid grid-cols-8 gap-2">
-                {appIcons.map((icon) => (
-                  <button
-                    key={icon}
-                    onClick={() => setSelectedIcon(icon)}
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
-                      selectedIcon === icon
-                        ? "bg-primary ring-2 ring-primary"
-                        : "bg-secondary hover:bg-muted"
-                    }`}
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Leave empty to use default naming
+              </p>
             </div>
           </div>
 
           <div className="flex gap-2">
             <Button
               variant="secondary"
-              onClick={() => setShowCreateDialog(false)}
+              onClick={() => {
+                setShowCreateDialog(false);
+                setSelectedApp(null);
+                setCustomName("");
+              }}
               className="flex-1"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateWorkspace}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={!selectedApp}
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
             >
-              Create
+              Clone
             </Button>
           </div>
         </DialogContent>
