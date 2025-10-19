@@ -2,17 +2,23 @@ import { useState } from "react";
 import { WorkspaceCard } from "@/components/WorkspaceCard";
 import { CreateWorkspaceButton } from "@/components/CreateWorkspaceButton";
 import { toast } from "sonner";
+import { Menu } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Layers } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface Workspace {
   id: string;
@@ -26,20 +32,22 @@ const appIcons = ["📱", "💬", "📧", "🎮", "📷", "🎵", "🎬", "📝"
 
 const Index = () => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([
-    {
-      id: "1",
-      name: "Lite(1)",
-      instanceNumber: 1,
-      icon: "📱",
-      baseApp: "Lite",
-    },
-    {
-      id: "2",
-      name: "Lite(2)",
-      instanceNumber: 2,
-      icon: "📱",
-      baseApp: "Lite",
-    },
+    { id: "1", name: "Lite(5)", instanceNumber: 5, icon: "📱", baseApp: "Lite" },
+    { id: "2", name: "Lite(13)", instanceNumber: 13, icon: "📱", baseApp: "Lite" },
+    { id: "3", name: "David", instanceNumber: 1, icon: "📱", baseApp: "David" },
+    { id: "4", name: "Lite(2)", instanceNumber: 2, icon: "📱", baseApp: "Lite" },
+    { id: "5", name: "Lite(6)", instanceNumber: 6, icon: "📱", baseApp: "Lite" },
+    { id: "6", name: "Lite(9)", instanceNumber: 9, icon: "📱", baseApp: "Lite" },
+    { id: "7", name: "Lite(10)", instanceNumber: 10, icon: "📱", baseApp: "Lite" },
+    { id: "8", name: "Lite(15)", instanceNumber: 15, icon: "📱", baseApp: "Lite" },
+    { id: "9", name: "Lite(16)", instanceNumber: 16, icon: "📱", baseApp: "Lite" },
+    { id: "10", name: "Lite(17)", instanceNumber: 17, icon: "📱", baseApp: "Lite" },
+    { id: "11", name: "Lite(19)", instanceNumber: 19, icon: "📱", baseApp: "Lite" },
+    { id: "12", name: "Lite(20)", instanceNumber: 20, icon: "📱", baseApp: "Lite" },
+    { id: "13", name: "Lite(7)", instanceNumber: 7, icon: "📱", baseApp: "Lite" },
+    { id: "14", name: "Lite(3)", instanceNumber: 3, icon: "📱", baseApp: "Lite" },
+    { id: "15", name: "Lite(21)", instanceNumber: 21, icon: "📱", baseApp: "Lite" },
+    { id: "16", name: "Lite(1)", instanceNumber: 1, icon: "📱", baseApp: "Lite" },
   ]);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -66,92 +74,83 @@ const Index = () => {
     };
 
     setWorkspaces([...workspaces, newWorkspace]);
-    toast.success("Workspace created successfully");
+    toast.success(`${newWorkspaceName} created`);
     setShowCreateDialog(false);
     setNewWorkspaceName("");
     setSelectedIcon("📱");
   };
 
-  const handleDeleteWorkspace = (id: string) => {
-    setWorkspaces(workspaces.filter((ws) => ws.id !== id));
-    toast.success("Workspace deleted");
-  };
-
-  const handleRenameWorkspace = (id: string, newName: string) => {
-    setWorkspaces(
-      workspaces.map((ws) => (ws.id === id ? { ...ws, name: newName } : ws))
-    );
-    toast.success("Workspace renamed");
-  };
-
   const handleLaunchWorkspace = (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
-    toast.success(`Launching ${workspace?.name}...`, {
-      description: "Opening isolated workspace environment",
-    });
+    toast.success(`Launching ${workspace?.name}...`);
+  };
+
+  const handleDeleteWorkspace = (id: string) => {
+    const workspace = workspaces.find((ws) => ws.id === id);
+    setWorkspaces(workspaces.filter((ws) => ws.id !== id));
+    toast.success(`${workspace?.name} deleted`);
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Layers className="w-6 h-6 text-primary-foreground" />
+      <header className="flex items-center gap-4 px-4 py-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <button className="p-2">
+              <Menu className="w-6 h-6 text-foreground" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="bg-card border-border">
+            <SheetHeader>
+              <SheetTitle className="text-foreground">Menu</SheetTitle>
+            </SheetHeader>
+            <div className="py-6 space-y-4">
+              <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                All Workspaces
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                Settings
+              </button>
+              <button 
+                className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-destructive"
+                onClick={() => {
+                  setWorkspaces([]);
+                  toast.success("All workspaces deleted");
+                }}
+              >
+                Delete All
+              </button>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                MultiSpace Pro
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Manage multiple workspace instances
-              </p>
-            </div>
-          </div>
-        </div>
+          </SheetContent>
+        </Sheet>
+
+        <h1 className="text-xl font-normal text-foreground">MultiSpace</h1>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">
-              Your Workspaces
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {workspaces.length} active workspace{workspaces.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
-
-        {/* Workspace Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+      <main className="px-4 pb-24">
+        <div className="grid grid-cols-3 gap-x-2 gap-y-6">
           {workspaces.map((workspace) => (
             <WorkspaceCard
               key={workspace.id}
               {...workspace}
-              onDelete={handleDeleteWorkspace}
-              onRename={handleRenameWorkspace}
-              onLaunch={handleLaunchWorkspace}
+              onClick={handleLaunchWorkspace}
             />
           ))}
         </div>
-
-        {/* Floating Action Button */}
-        <div className="fixed bottom-8 right-8">
-          <CreateWorkspaceButton onClick={() => setShowCreateDialog(true)} />
-        </div>
       </main>
+
+      {/* Floating Action Button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+        <CreateWorkspaceButton onClick={() => setShowCreateDialog(true)} />
+      </div>
 
       {/* Create Workspace Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground">Create New Workspace</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Set up a new isolated workspace instance
-            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -161,10 +160,10 @@ const Index = () => {
               </Label>
               <Input
                 id="name"
-                placeholder="e.g., Lite(3)"
+                placeholder="e.g., Lite(22)"
                 value={newWorkspaceName}
                 onChange={(e) => setNewWorkspaceName(e.target.value)}
-                className="bg-secondary border-border"
+                className="bg-secondary border-border text-foreground"
               />
             </div>
 
@@ -198,7 +197,7 @@ const Index = () => {
             </Button>
             <Button
               onClick={handleCreateWorkspace}
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Create
             </Button>
