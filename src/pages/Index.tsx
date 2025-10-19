@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { WorkspaceCard } from "@/components/WorkspaceCard";
 import { CreateWorkspaceButton } from "@/components/CreateWorkspaceButton";
 import { AppSelector, AVAILABLE_APPS, App } from "@/components/AppSelector";
 import { toast } from "sonner";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,138 +23,204 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import facebookIcon from "@/assets/facebook-icon.png";
 
 interface Workspace {
   id: string;
   name: string;
-  instanceNumber: number;
-  icon: string;
-  baseApp: string;
-  appId: string;
+  instance_number: number;
+  icon_url: string;
+  app_id: string;
+  app_name: string;
 }
 
 const Index = () => {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([
-    { id: "1", name: "Lite(5)", instanceNumber: 5, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "2", name: "Lite(13)", instanceNumber: 13, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "3", name: "David", instanceNumber: 1, icon: facebookIcon, baseApp: "David", appId: "facebook" },
-    { id: "4", name: "Lite(2)", instanceNumber: 2, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "5", name: "Lite(6)", instanceNumber: 6, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "6", name: "Lite(9)", instanceNumber: 9, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "7", name: "Lite(10)", instanceNumber: 10, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "8", name: "Lite(15)", instanceNumber: 15, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "9", name: "Lite(16)", instanceNumber: 16, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "10", name: "Lite(17)", instanceNumber: 17, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "11", name: "Lite(19)", instanceNumber: 19, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "12", name: "Lite(20)", instanceNumber: 20, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "13", name: "Lite(7)", instanceNumber: 7, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "14", name: "Lite(3)", instanceNumber: 3, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "15", name: "Lite(21)", instanceNumber: 21, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-    { id: "16", name: "Lite(1)", instanceNumber: 1, icon: facebookIcon, baseApp: "Lite", appId: "facebook" },
-  ]);
-
+  const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
   const [customName, setCustomName] = useState("");
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchWorkspaces();
+    }
+  }, [user]);
+
+  const fetchWorkspaces = async () => {
+    const { data, error } = await supabase
+      .from("workspaces")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      toast.error("Failed to load workspaces");
+    } else {
+      setWorkspaces(data || []);
+    }
+  };
 
   const handleSelectApp = (app: App) => {
     setSelectedApp(app);
   };
 
-  const handleCreateWorkspace = () => {
-    if (!selectedApp) {
+  const handleCreateWorkspace = async () => {
+    if (!selectedApp || !user) {
       toast.error("Please select an app to clone");
       return;
     }
 
-    // Find all instances of the selected app
-    const appInstances = workspaces.filter(ws => ws.appId === selectedApp.id);
+    const appInstances = workspaces.filter(ws => ws.app_id === selectedApp.id);
     const maxInstanceNumber = appInstances.reduce(
-      (max, ws) => Math.max(max, ws.instanceNumber),
+      (max, ws) => Math.max(max, ws.instance_number),
       0
     );
 
     const newInstanceNumber = maxInstanceNumber + 1;
     const defaultName = customName.trim() || `${selectedApp.displayName}(${newInstanceNumber})`;
 
-    const newWorkspace: Workspace = {
-      id: Date.now().toString(),
+    const { error } = await supabase.from("workspaces").insert({
+      user_id: user.id,
       name: defaultName,
-      instanceNumber: newInstanceNumber,
-      icon: selectedApp.icon,
-      baseApp: selectedApp.displayName,
-      appId: selectedApp.id,
-    };
+      instance_number: newInstanceNumber,
+      icon_url: selectedApp.icon,
+      app_id: selectedApp.id,
+      app_name: selectedApp.displayName,
+    });
 
-    setWorkspaces([...workspaces, newWorkspace]);
-    toast.success(`${defaultName} created`);
-    setShowCreateDialog(false);
-    setSelectedApp(null);
-    setCustomName("");
+    if (error) {
+      toast.error("Failed to create workspace");
+    } else {
+      toast.success(`${defaultName} created`);
+      fetchWorkspaces();
+      setShowCreateDialog(false);
+      setSelectedApp(null);
+      setCustomName("");
+    }
   };
 
   const handleLaunchWorkspace = (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
-    toast.success(`Launching ${workspace?.name}...`, {
-      description: "Opening isolated workspace",
-    });
+    if (workspace) {
+      navigate(`/app/${workspace.app_id}/${id}`);
+    }
   };
 
-  const handleDeleteWorkspace = (id: string) => {
+  const handleDeleteWorkspace = async (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
-    setWorkspaces(workspaces.filter((ws) => ws.id !== id));
-    toast.success(`${workspace?.name} deleted`);
+    
+    const { error } = await supabase
+      .from("workspaces")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Failed to delete workspace");
+    } else {
+      toast.success(`${workspace?.name} deleted`);
+      fetchWorkspaces();
+    }
   };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-primary rounded-full animate-pulse mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="flex items-center gap-4 px-4 py-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <button className="p-2">
-              <Menu className="w-6 h-6 text-foreground" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="bg-card border-border">
-            <SheetHeader>
-              <SheetTitle className="text-foreground">Menu</SheetTitle>
-            </SheetHeader>
-            <div className="py-6 space-y-4">
-              <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
-                All Workspaces
+      <header className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center gap-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="p-2">
+                <Menu className="w-6 h-6 text-foreground" />
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
-                Settings
-              </button>
-              <button 
-                className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-destructive"
-                onClick={() => {
-                  setWorkspaces([]);
-                  toast.success("All workspaces deleted");
-                }}
-              >
-                Delete All
-              </button>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetTrigger>
+            <SheetContent side="left" className="bg-card border-border">
+              <SheetHeader>
+                <SheetTitle className="text-foreground">Menu</SheetTitle>
+              </SheetHeader>
+              <div className="py-6 space-y-4">
+                <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                  All Workspaces
+                </button>
+                <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                  Settings
+                </button>
+                <button 
+                  className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-destructive"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from("workspaces")
+                      .delete()
+                      .eq("user_id", user.id);
+                    
+                    if (!error) {
+                      setWorkspaces([]);
+                      toast.success("All workspaces deleted");
+                    }
+                  }}
+                >
+                  Delete All
+                </button>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-        <h1 className="text-xl font-normal text-foreground">MultiSpace</h1>
+          <h1 className="text-xl font-normal text-foreground">MultiSpace</h1>
+        </div>
+
+        <button
+          onClick={handleSignOut}
+          className="p-2 hover:bg-secondary rounded-lg transition-colors"
+          title="Sign out"
+        >
+          <LogOut className="w-5 h-5 text-muted-foreground" />
+        </button>
       </header>
 
       {/* Main Content */}
       <main className="px-4 pb-24">
-        <div className="grid grid-cols-3 gap-x-2 gap-y-6">
-          {workspaces.map((workspace) => (
-            <WorkspaceCard
-              key={workspace.id}
-              {...workspace}
-              onClick={handleLaunchWorkspace}
-            />
-          ))}
-        </div>
+        {workspaces.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">No workspaces yet</p>
+            <p className="text-muted-foreground text-sm mt-2">Tap the + button to create your first workspace</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-x-2 gap-y-6">
+            {workspaces.map((workspace) => (
+              <WorkspaceCard
+                key={workspace.id}
+                id={workspace.id}
+                name={workspace.name}
+                instanceNumber={workspace.instance_number}
+                icon={workspace.icon_url}
+                onClick={handleLaunchWorkspace}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Floating Action Button */}
@@ -178,7 +247,7 @@ const Index = () => {
               </Label>
               <Input
                 id="name"
-                placeholder={selectedApp ? `${selectedApp.displayName}(${workspaces.filter(ws => ws.appId === selectedApp.id).length + 1})` : "Enter custom name"}
+                placeholder={selectedApp ? `${selectedApp.displayName}(${workspaces.filter(ws => ws.app_id === selectedApp.id).length + 1})` : "Enter custom name"}
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 className="bg-secondary border-border text-foreground"
