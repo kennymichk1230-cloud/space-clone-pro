@@ -50,6 +50,7 @@ export default {
       },
       boxShadow: {
         'fab': 'var(--shadow-fab)',
+        'card': 'var(--shadow-card)',
       },
       borderRadius: {
         lg: "var(--radius)",

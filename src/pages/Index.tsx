@@ -6,7 +6,7 @@ import { WorkspaceCard } from "@/components/WorkspaceCard";
 import { CreateWorkspaceButton } from "@/components/CreateWorkspaceButton";
 import { AppSelector, AVAILABLE_APPS, App } from "@/components/AppSelector";
 import { toast } from "sonner";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,8 @@ const Index = () => {
   const navigate = useNavigate();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
   const [selectedApp, setSelectedApp] = useState<App | null>(null);
   const [customName, setCustomName] = useState("");
 
@@ -124,6 +126,62 @@ const Index = () => {
     }
   };
 
+  const handleEditWorkspace = (id: string) => {
+    const workspace = workspaces.find((ws) => ws.id === id);
+    if (workspace) {
+      setEditingWorkspace(workspace);
+      setCustomName(workspace.name);
+      setShowEditDialog(true);
+    }
+  };
+
+  const handleUpdateWorkspace = async () => {
+    if (!editingWorkspace || !customName.trim()) {
+      toast.error("Please enter a name");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("workspaces")
+      .update({ name: customName.trim() })
+      .eq("id", editingWorkspace.id);
+
+    if (error) {
+      toast.error("Failed to update workspace");
+    } else {
+      toast.success("Workspace updated");
+      fetchWorkspaces();
+      setShowEditDialog(false);
+      setEditingWorkspace(null);
+      setCustomName("");
+    }
+  };
+
+  const handleBackupData = async () => {
+    const backup = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      workspaces: workspaces,
+      user: {
+        id: user?.id,
+        email: user?.email,
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `multispace-backup-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Backup downloaded");
+  };
+
   const handleDeleteWorkspace = async (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
     
@@ -161,7 +219,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4">
+      <header className="flex items-center justify-between px-4 py-4 bg-card shadow-sm border-b border-border">
         <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
@@ -174,14 +232,21 @@ const Index = () => {
                 <SheetTitle className="text-foreground">Menu</SheetTitle>
               </SheetHeader>
               <div className="py-6 space-y-4">
-                <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                <button className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground transition-colors">
                   All Workspaces
                 </button>
-                <button className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-foreground">
+                <button 
+                  onClick={handleBackupData}
+                  className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground flex items-center gap-2 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Backup Data
+                </button>
+                <button className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground transition-colors">
                   Settings
                 </button>
                 <button 
-                  className="w-full text-left px-4 py-2 hover:bg-muted rounded-lg text-destructive"
+                  className="w-full text-left px-4 py-2 hover:bg-destructive/10 rounded-lg text-destructive transition-colors"
                   onClick={async () => {
                     const { error } = await supabase
                       .from("workspaces")
@@ -200,7 +265,7 @@ const Index = () => {
             </SheetContent>
           </Sheet>
 
-          <h1 className="text-xl font-normal text-foreground">MultiSpace</h1>
+          <h1 className="text-xl font-semibold text-primary">MultiSpace</h1>
         </div>
 
         <button
@@ -229,6 +294,8 @@ const Index = () => {
                 instanceNumber={workspace.instance_number}
                 icon={workspace.icon_url}
                 onClick={handleLaunchWorkspace}
+                onEdit={handleEditWorkspace}
+                onDelete={handleDeleteWorkspace}
               />
             ))}
           </div>
@@ -289,6 +356,51 @@ const Index = () => {
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
             >
               Clone
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Workspace Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Edit Workspace Name</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name" className="text-foreground">
+                Workspace Name
+              </Label>
+              <Input
+                id="edit-name"
+                placeholder="Enter workspace name"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                className="bg-secondary border-border text-foreground"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowEditDialog(false);
+                setEditingWorkspace(null);
+                setCustomName("");
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateWorkspace}
+              disabled={!customName.trim()}
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+            >
+              Save
             </Button>
           </div>
         </DialogContent>
