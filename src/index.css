@@ -36,7 +36,7 @@ All colors MUST be HSL.
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --shadow-fab: 0 8px 24px hsl(221 83% 53% / 0.3);
     --shadow-card: 0 2px 8px hsl(221 83% 53% / 0.08);
@@ -51,6 +51,6 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-sm;
   }
 }

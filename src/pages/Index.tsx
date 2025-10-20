@@ -219,34 +219,34 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-card shadow-sm border-b border-border">
-        <div className="flex items-center gap-4">
+      <header className="flex items-center justify-between px-3 py-2 bg-card shadow-sm border-b border-border">
+        <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
-              <button className="p-2">
-                <Menu className="w-6 h-6 text-foreground" />
+              <button className="p-1.5">
+                <Menu className="w-5 h-5 text-foreground" />
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-card border-border">
               <SheetHeader>
                 <SheetTitle className="text-foreground">Menu</SheetTitle>
               </SheetHeader>
-              <div className="py-6 space-y-4">
-                <button className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground transition-colors">
+              <div className="py-4 space-y-2">
+                <button className="w-full text-left px-3 py-1.5 hover:bg-secondary rounded-lg text-foreground transition-colors text-sm">
                   All Workspaces
                 </button>
                 <button 
                   onClick={handleBackupData}
-                  className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-3 py-1.5 hover:bg-secondary rounded-lg text-foreground flex items-center gap-2 transition-colors text-sm"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                   Backup Data
                 </button>
-                <button className="w-full text-left px-4 py-2 hover:bg-secondary rounded-lg text-foreground transition-colors">
+                <button className="w-full text-left px-3 py-1.5 hover:bg-secondary rounded-lg text-foreground transition-colors text-sm">
                   Settings
                 </button>
                 <button 
-                  className="w-full text-left px-4 py-2 hover:bg-destructive/10 rounded-lg text-destructive transition-colors"
+                  className="w-full text-left px-3 py-1.5 hover:bg-destructive/10 rounded-lg text-destructive transition-colors text-sm"
                   onClick={async () => {
                     const { error } = await supabase
                       .from("workspaces")
@@ -265,27 +265,27 @@ const Index = () => {
             </SheetContent>
           </Sheet>
 
-          <h1 className="text-xl font-semibold text-primary">MultiSpace</h1>
+          <h1 className="text-base font-semibold text-primary">MultiSpace</h1>
         </div>
 
         <button
           onClick={handleSignOut}
-          className="p-2 hover:bg-secondary rounded-lg transition-colors"
+          className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
           title="Sign out"
         >
-          <LogOut className="w-5 h-5 text-muted-foreground" />
+          <LogOut className="w-4 h-4 text-muted-foreground" />
         </button>
       </header>
 
       {/* Main Content */}
-      <main className="px-4 pb-24">
+      <main className="px-3 pb-16">
         {workspaces.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No workspaces yet</p>
-            <p className="text-muted-foreground text-sm mt-2">Tap the + button to create your first workspace</p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-base">No workspaces yet</p>
+            <p className="text-muted-foreground text-xs mt-1">Tap the + button to create your first workspace</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-x-2 gap-y-6">
+          <div className="grid grid-cols-4 gap-x-1 gap-y-3 mt-2">
             {workspaces.map((workspace) => (
               <WorkspaceCard
                 key={workspace.id}
@@ -303,25 +303,25 @@ const Index = () => {
       </main>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2">
         <CreateWorkspaceButton onClick={() => setShowCreateDialog(true)} />
       </div>
 
       {/* Create Workspace Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Clone App</DialogTitle>
+            <DialogTitle className="text-foreground text-base">Clone App</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-5 py-2">
+          <div className="space-y-3 py-1">
             <AppSelector 
               selectedAppId={selectedApp?.id || null}
               onSelectApp={handleSelectApp}
             />
 
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-foreground">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-foreground text-sm">
                 Custom Name (Optional)
               </Label>
               <Input
@@ -329,10 +329,10 @@ const Index = () => {
                 placeholder={selectedApp ? `${selectedApp.displayName}(${workspaces.filter(ws => ws.app_id === selectedApp.id).length + 1})` : "Enter custom name"}
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                className="bg-secondary border-border text-foreground"
+                className="bg-secondary border-border text-foreground h-8 text-sm"
                 disabled={!selectedApp}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] text-muted-foreground">
                 Leave empty to use default naming
               </p>
             </div>
@@ -346,14 +346,14 @@ const Index = () => {
                 setSelectedApp(null);
                 setCustomName("");
               }}
-              className="flex-1"
+              className="flex-1 h-8 text-sm"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateWorkspace}
               disabled={!selectedApp}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 h-8 text-sm"
             >
               Clone
             </Button>
@@ -363,14 +363,14 @@ const Index = () => {
 
       {/* Edit Workspace Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Edit Workspace Name</DialogTitle>
+            <DialogTitle className="text-foreground text-base">Edit Workspace Name</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-3 py-1">
             <div className="space-y-2">
-              <Label htmlFor="edit-name" className="text-foreground">
+              <Label htmlFor="edit-name" className="text-foreground text-sm">
                 Workspace Name
               </Label>
               <Input
@@ -378,7 +378,7 @@ const Index = () => {
                 placeholder="Enter workspace name"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                className="bg-secondary border-border text-foreground"
+                className="bg-secondary border-border text-foreground h-8 text-sm"
               />
             </div>
           </div>
@@ -391,14 +391,14 @@ const Index = () => {
                 setEditingWorkspace(null);
                 setCustomName("");
               }}
-              className="flex-1"
+              className="flex-1 h-8 text-sm"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateWorkspace}
               disabled={!customName.trim()}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 h-8 text-sm"
             >
               Save
             </Button>
