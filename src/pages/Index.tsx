@@ -110,7 +110,19 @@ const Index = () => {
   const handleLaunchWorkspace = (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
     if (workspace) {
-      navigate(`/app/${workspace.app_id}/${id}`);
+      const appUrls: Record<string, string> = {
+        facebook: "https://www.facebook.com",
+        instagram: "https://www.instagram.com",
+        whatsapp: "https://web.whatsapp.com",
+        messenger: "https://www.messenger.com",
+        tiktok: "https://www.tiktok.com",
+        twitter: "https://twitter.com"
+      };
+      
+      const url = appUrls[workspace.app_id];
+      if (url) {
+        window.open(url, '_blank');
+      }
     }
   };
 
