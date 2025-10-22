@@ -7,6 +7,8 @@ import { CreateWorkspaceButton } from "@/components/CreateWorkspaceButton";
 import { AppSelector, AVAILABLE_APPS, App } from "@/components/AppSelector";
 import { toast } from "sonner";
 import { Menu, LogOut, Download } from "lucide-react";
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import {
   Dialog,
   DialogContent,
@@ -107,7 +109,7 @@ const Index = () => {
     }
   };
 
-  const handleLaunchWorkspace = (id: string) => {
+  const handleLaunchWorkspace = async (id: string) => {
     const workspace = workspaces.find((ws) => ws.id === id);
     if (workspace) {
       const appUrls: Record<string, string> = {
@@ -121,7 +123,16 @@ const Index = () => {
       
       const url = appUrls[workspace.app_id];
       if (url) {
-        window.open(url, '_blank');
+        // Use Capacitor Browser for native apps (true session isolation per workspace)
+        if (Capacitor.isNativePlatform()) {
+          await Browser.open({ 
+            url,
+            presentationStyle: 'popover'
+          });
+        } else {
+          // Fallback for web preview
+          window.open(url, '_blank');
+        }
       }
     }
   };
