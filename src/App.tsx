@@ -13,6 +13,7 @@ import MessengerApp from "./pages/apps/MessengerApp";
 import TwitterApp from "./pages/apps/TwitterApp";
 import TikTokApp from "./pages/apps/TikTokApp";
 import NotFound from "./pages/NotFound";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/app/facebook/:workspaceId" element={<FacebookApp />} />
             <Route path="/app/whatsapp/:workspaceId" element={<WhatsAppApp />} />
             <Route path="/app/instagram/:workspaceId" element={<InstagramApp />} />
