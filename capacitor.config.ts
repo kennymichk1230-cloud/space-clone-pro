@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.64746ef8007e45489f3150765392b791',
+  appId: 'app.lovable.spaceclonepro',
   appName: 'space-clone-pro',
   webDir: 'dist',
   server: {
