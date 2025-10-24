@@ -52,10 +52,14 @@ export type Database = {
           app_id: string
           app_name: string
           created_at: string
+          facebook_access_token: string | null
+          facebook_page_id: string | null
+          facebook_user_id: string | null
           icon_url: string
           id: string
           instance_number: number
           name: string
+          token_expires_at: string | null
           updated_at: string
           user_id: string
         }
@@ -63,10 +67,14 @@ export type Database = {
           app_id: string
           app_name: string
           created_at?: string
+          facebook_access_token?: string | null
+          facebook_page_id?: string | null
+          facebook_user_id?: string | null
           icon_url: string
           id?: string
           instance_number: number
           name: string
+          token_expires_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -74,10 +82,14 @@ export type Database = {
           app_id?: string
           app_name?: string
           created_at?: string
+          facebook_access_token?: string | null
+          facebook_page_id?: string | null
+          facebook_user_id?: string | null
           icon_url?: string
           id?: string
           instance_number?: number
           name?: string
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }
