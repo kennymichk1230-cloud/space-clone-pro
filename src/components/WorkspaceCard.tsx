@@ -1,10 +1,12 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Share2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface WorkspaceCardProps {
   id: string;
   name: string;
   instanceNumber: number;
   icon: string;
+  appId: string;
   onClick: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -15,10 +17,35 @@ export const WorkspaceCard = ({
   name,
   instanceNumber,
   icon,
+  appId,
   onClick,
   onEdit,
   onDelete,
 }: WorkspaceCardProps) => {
+  const { toast } = useToast();
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/app/${appId}/${id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: name,
+          text: `Open ${name}`,
+          url: url,
+        });
+      } catch (err) {
+        console.log("Share cancelled");
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied!",
+        description: "Open in browser and use 'Add to Home Screen' to install this workspace as a separate app",
+      });
+    }
+  };
   return (
     <div className="flex flex-col items-center gap-1 p-1 group relative">
       <button
@@ -46,6 +73,13 @@ export const WorkspaceCard = ({
       
       {/* Action buttons */}
       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={handleShare}
+          className="p-1 rounded-md bg-accent/10 hover:bg-accent/20 transition-colors"
+          title="Add to Home Screen"
+        >
+          <Share2 className="w-3 h-3 text-accent-foreground" />
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();

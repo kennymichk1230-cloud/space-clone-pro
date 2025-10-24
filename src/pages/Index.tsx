@@ -304,6 +304,7 @@ const Index = () => {
                 name={workspace.name}
                 instanceNumber={workspace.instance_number}
                 icon={workspace.icon_url}
+                appId={workspace.app_id}
                 onClick={handleLaunchWorkspace}
                 onEdit={handleEditWorkspace}
                 onDelete={handleDeleteWorkspace}
